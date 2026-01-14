@@ -1,0 +1,110 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: taskengine-postgres
+    environment:
+      POSTGRES_USER: taskengine
+      POSTGRES_PASSWORD: taskengine_pass
+      POSTGRES_DB: taskengine_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskengine -d taskengine_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: taskengine-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    container_name: taskengine-api
+    environment:
+      DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  scheduler1:
+    build: ./scheduler
+    container_name: taskengine-scheduler1
+    environment:
+      DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
+      REDIS_HOST: redis
+      REDIS_QUEUE: taskengine:queue
+      SCHEDULER_ID: scheduler-1
+      BATCH_SIZE: "10"
+      POLL_INTERVAL_SEC: "1.0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler2:
+    build: ./scheduler
+    container_name: taskengine-scheduler2
+    environment:
+      DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
+      REDIS_HOST: redis
+      REDIS_QUEUE: taskengine:queue
+      SCHEDULER_ID: scheduler-2
+      BATCH_SIZE: "10"
+      POLL_INTERVAL_SEC: "1.0"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker1:
+    build: ./worker
+    container_name: taskengine-worker1
+    environment:
+      DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
+      REDIS_HOST: redis
+      REDIS_QUEUE: taskengine:queue
+      WORKER_ID: worker-1
+      LEASE_TTL_SEC: "15"
+      FAKE_WORK_SEC: "6"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker2:
+    build: ./worker
+    container_name: taskengine-worker2
+    environment:
+      DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
+      REDIS_HOST: redis
+      REDIS_QUEUE: taskengine:queue
+      WORKER_ID: worker-2
+      LEASE_TTL_SEC: "15"
+      FAKE_WORK_SEC: "6"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
