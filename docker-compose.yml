@@ -29,6 +29,7 @@ services:
 
   api:
     build: ./api
+    restart: unless-stopped
     container_name: taskengine-api
     environment:
       DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
