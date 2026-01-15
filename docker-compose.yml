@@ -40,6 +40,7 @@ services:
 
   scheduler1:
     build: ./scheduler
+    restart: unless-stopped
     container_name: taskengine-scheduler1
     environment:
       DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
@@ -56,6 +57,7 @@ services:
 
   scheduler2:
     build: ./scheduler
+    restart: unless-stopped
     container_name: taskengine-scheduler2
     environment:
       DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
@@ -72,6 +74,7 @@ services:
 
   worker1:
     build: ./worker
+    restart: unless-stopped
     container_name: taskengine-worker1
     environment:
       DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
@@ -90,6 +93,7 @@ services:
 
   worker2:
     build: ./worker
+    restart: unless-stopped
     container_name: taskengine-worker2
     environment:
       DATABASE_URL: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
