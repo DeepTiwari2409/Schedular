@@ -13,7 +13,6 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 def get_db_conn():
-    # Example: postgresql://taskengine:taskengine_pass@postgres:5432/taskengine_db
     dsn = os.environ["DATABASE_URL"]
     return psycopg.connect(dsn, row_factory=dict_row)
 
@@ -35,7 +34,6 @@ def create_task():
     env = payload.get("env", {})
     max_attempts = payload.get("max_attempts", 3)
 
-    # run_at is optional; default is now (UTC)
     run_at_str = payload.get("run_at")
     if run_at_str:
         try:
