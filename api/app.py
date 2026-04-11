@@ -82,7 +82,6 @@ def get_task(task_id: str):
     if not row:
         return jsonify({"error": "Task not found"}), 404
 
-    # Convert datetimes to ISO strings for JSON
     for k in ["run_at", "next_run_at", "created_at", "updated_at"]:
         if row.get(k) is not None:
             row[k] = row[k].isoformat()
